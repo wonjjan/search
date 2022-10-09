@@ -1,0 +1,114 @@
+search1 = []
+g_link = []
+y_link = []
+n_link = []
+
+
+def search(request):
+    c = Choose.objects.get
+    context = {
+        "c" : c
+    }
+    if request.method == "POST":
+        if request.POST.get("choose") == "구글":
+            Choose(cho=request.POST.get("choose")).save()
+            Choose(com=request.POST.get("comment")).save()
+            return redirect("por:google")
+        if request.POST.get("choose") == "유튜브":
+            Choose(cho=request.POST.get("choose")).save()
+            Choose(com=request.POST.get("comment")).save()
+            return redirect("por:youtube")
+        if request.POST.get("choose") == "네이버":
+            Choose(cho=request.POST.get("choose")).save()
+            Choose(com=request.POST.get("comment")).save()
+            return redirect("por:naver")
+    else:
+        pass
+    return render(request, "por/search/search.html", context)
+
+
+
+def google(request):
+    c = Choose.objects.all()
+    for i in c:
+        webdriver_options = webdriver.ChromeOptions()
+        webdriver_options.add_argument('headless')
+
+        driver = webdriver.Chrome("chromedriver.exe", chrome_options = webdriver_options)
+        driver.get(f"https://www.google.com/search?q={i.com}")
+        time.sleep(0.5)
+        ht = driver.page_source
+        soup = BeautifulSoup(ht,"html.parser")
+
+        for k,i in enumerate(soup.select("div.yuRUbf"), start=1):
+            search1.append(i.select_one("a > h3").text)
+            g_link.append(i.select_one("a").get("href"))
+            if k == 6:
+                break
+    context = {
+        "cset" : c,
+        "gl" : g_link,
+        "se" : search1
+    }
+    return render(request, "por/search/google.html", context)
+
+def naver(request):
+    c = Choose.objects.all()
+    for i in c:
+        webdriver_options = webdriver.ChromeOptions()
+        webdriver_options.add_argument('headless')
+
+        driver = webdriver.Chrome("chromedriver.exe", chrome_options = webdriver_options)
+        driver.get(f"https://search.naver.com/search.naver?display=15&f=&filetype=0&page=2&query={i.com}research_url=&sm=tab_pge&start=1&where=web")
+        time.sleep(0.5)
+        ht = driver.page_source
+        soup = BeautifulSoup(ht,"html.parser")
+
+        for k,i in enumerate(soup.select("a.link_tit"), start=1):
+            search1.append(i.text)
+            link1 = i.get("href")
+            n_link.append(link1)
+            if k == 6:
+                break
+                
+    context = {
+        "cset" : c,
+        "nl" : n_link,
+        "se" : search1
+    }
+    return render(request, "por/search/naver.html", context)
+
+def youtube(request):
+    c = Choose.objects.all()
+    for i in c:
+        webdriver_options = webdriver.ChromeOptions()
+        webdriver_options.add_argument('headless')
+
+        driver = webdriver.Chrome("chromedriver.exe", chrome_options = webdriver_options)
+        driver.get(f"https://www.youtube.com/results?search_query={i.com}")
+        time.sleep(0.5)
+        ht = driver.page_source
+        soup = BeautifulSoup(ht,"html.parser")
+
+        for k,i in enumerate(soup.select("a#video-title"), start=1):
+            title = i.select_one("yt-formatted-string").text
+            search1.append(title)
+            link1 = i.get("href")
+            link = "https://www.youtube.com/" + link1
+            y_link.append(link)
+            if k == 6:
+                break
+    context = {
+        "cset" : c,
+        "yl" : y_link,
+        "se" : search1
+    }
+    return render(request, "por/search/youtube.html", context)
+
+def delete(request):
+    Choose.objects.all().delete()
+    search1.clear()
+    g_link.clear()
+    y_link.clear()
+    n_link.clear()
+    return redirect("por:search")
