@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+    
+{% block con %}
+    <div class="container mt-5">
+        <h1>네이버</h1>
+        <hr>
+
+        <table border="1">
+            <tr>
+                {% for i in se %}
+                    <td>{{ i }}</td>
+                {% empty %}
+                    <td>검색결과 없음</td>
+                {% endfor %}
+            </tr>
+            <tr>
+                {% for i in nl %}
+                    <td><a href="{{ i }}" target="_blank"><button>이동!</button></a></td>
+                {% empty %}
+                    <td>링크 없음</td>
+                {% endfor %}
+            </tr>
+        </table>
+        <a href="{% url 'por:search' %}" class="btn btn-primary mt-4" >돌아가기</a>
+    </div>
+{% endblock %}
+
